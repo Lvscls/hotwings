@@ -1,0 +1,228 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Recettes API",
+    "description": "API pour récupérer des recettes et des ingrédients"
+  },
+  "basePath": "/",
+  "schemes": ["http"],
+  "paths": {
+    "/recipes": {
+      "get": {
+        "summary": "Récupérer toutes les recettes",
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Liste de toutes les recettes",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Recipe"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/recipes/title/{name}": {
+      "get": {
+        "summary": "Récupérer une recette par son nom",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Nom de la recette encodé avec %20",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "La recette avec le nom spécifié",
+            "schema": {
+              "$ref": "#/definitions/Recipe"
+            }
+          }
+        }
+      }
+    },
+    "/recipes/{id}": {
+      "get": {
+        "summary": "Récupérer une recette par son identifiant",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Identifiant de la recette",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "La recette avec l'identifiant spécifié",
+            "schema": {
+              "$ref": "#/definitions/Recipe"
+            }
+          }
+        }
+      }
+    },
+    "/recipes/ingredient/{ingredient}": {
+      "get": {
+        "summary": "Récupérer les recettes pour un ingrédient donné",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "ingredient",
+            "in": "path",
+            "description": "Nom de l'ingrédient encodé avec %20",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste de toutes les recettes contenant l'ingrédient spécifié",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Recipe"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/recipes/{id}/ingredients": {
+      "get": {
+        "summary": "Récupérer les ingrédients d'une recette avec leur quantité et unité",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Identifiant de la recette",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des ingrédients de la recette avec leur quantité et unité",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/IngredientQuantity"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/recipes/{id_recette}/details": {
+      "get": {
+        "summary": "Récupérer les détails d'une recette, y compris les ingrédients",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "id_recette",
+            "in": "path",
+            "description": "Identifiant de la recette",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Les détails de la recette avec l'identifiant spécifié",
+            "schema": {
+              "$ref": "#/definitions/RecipeDetails"
+            }
+          }
+        }
+      }
+    },
+    "/ingredients": {
+      "get": {
+        "summary": "Récupérer tous les ingrédients",
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Liste de tous les ingrédients",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Ingredient"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Recipe": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "img": {
+          "type": "string"
+        }
+      }
+    },
+    "IngredientQuantity": {
+      "type": "object",
+      "properties": {
+        "ingredient_name": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        }
+      }
+    },
+    "Ingredient": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "RecipeDetails": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "img": {
+          "type": "string"
+        },
+        "ingredients": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
