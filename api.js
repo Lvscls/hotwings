@@ -3,6 +3,7 @@ const express = require("express");
 const mysql = require("mysql2/promise");
 const bodyParser = require("body-parser");
 const swaggerUi = require("swagger-ui-express");
+const { MongoClient, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 // Création de l'application Express
@@ -12,6 +13,8 @@ const app = express();
 app.use(bodyParser.json());
 
 app.use("/doc", swaggerUi.serve, swaggerUi.setup(require("./swagger.json")));
+
+//-------------------------------MYSQL-----------------------------------------
 
 // Configuration de la connexion à la base de données MySQL
 const pool = mysql.createPool({
@@ -121,6 +124,161 @@ app.get("/ingredients", async (req, res) => {
     throw error;
   }
 });
+
+//-----------------------------FIN MYSQL-----------------------------------------
+//-----------------------------MONGODB-----------------------------------------
+// Configuration de la connexion à la base de données MongoDB
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri);
+let db;
+async function connect() {
+  try {
+    await client.connect();
+    console.log("Connecté à la base de données MongoDB");
+    db = client.db(process.env.DB_MONGODB);
+  } catch (err) {
+    console.error(err);
+  }
+}
+connect();
+
+// Route pour récupérer toutes les recettes
+app.get("/mongo_recipes", async (req, res) => {
+  try {
+    const recipes = await db.collection("recettes").find().toArray();
+    res.json(recipes);
+  } catch (error) {
+    throw error;
+  }
+});
+
+// Route pour récupérer une recette par son nom
+app.get("/mongo_recipes/title/:name", async (req, res) => {
+  const encodedName = req.params.name; // Nom de recette encodé avec %20
+  console.log(encodedName)
+  const name = decodeURIComponent(encodedName); // Décoder le nom de recette
+  console.log(name)
+  try {
+    const recipe = await db.collection("recettes").findOne({ titre: name });
+    res.json(recipe);
+  } catch (error) {
+    throw error;
+  }
+});
+
+// Route pour récupérer une seule recette par son identifiant
+app.get("/mongo_recipes/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    const recipe = await db
+      .collection("recettes")
+      .findOne({ _id: new ObjectId(id) });
+    res.json(recipe);
+  } catch (error) {
+    throw error;
+  }
+});
+
+// Route pour récupérer les recettes pour un ingrédient donné
+app.get("/mongo_recipes/ingredient/:ingredient", async (req, res) => {
+  const encodedIngredient = req.params.ingredient; // Nom d'ingrédient encodé avec %20
+  const ingredient = decodeURIComponent(encodedIngredient); // Décoder le nom d'ingrédient
+  try {
+    const recipes = await db
+      .collection("recettes")
+      .aggregate([
+        {
+          $lookup: {
+            from: "ingredients_recettes",
+            localField: "_id",
+            foreignField: "recette_id",
+            as: "ingredients",
+          },
+        },
+        { $unwind: "$ingredients" },
+        {
+          $lookup: {
+            from: "ingredients",
+            localField: "ingredients.ingredient_id",
+            foreignField: "_id",
+            as: "ingredient",
+          },
+        },
+        { $unwind: "$ingredient" },
+        { $match: { "ingredient.nom": ingredient } },
+        {
+          $group: {
+            _id: "$_id",
+            titre: { $first: "$title" },
+            description: { $first: "$description" },
+            image: { $first: "$img" },
+          },
+        },
+      ])
+      .toArray();
+    res.json(recipes);
+  } catch (error) {
+    throw error;
+  }
+});
+// Route pour récupérer les ingrédients d'une recette avec leur quantité et unité
+// app.get("/mongo_recipes/:id/ingredients", (req, res) => {
+//   const id = req.params.id;
+//   const query = [
+//     {
+//       $match: {
+//         _id: new ObjectId(id),
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "ingredients_recettes",
+//         localField: "_id",
+//         foreignField: "recipe_id",
+//         as: "ingredients",
+//       },
+//     },
+//     {
+//       $unwind: {
+//         path: "$ingredients",
+//         preserveNullAndEmptyArrays: true,
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "ingredients",
+//         localField: "ingredients.ingredient_id",
+//         foreignField: "_id",
+//         as: "ingredient",
+//       },
+//     },
+//     {
+//       $unwind: {
+//         path: "$ingredient",
+//         preserveNullAndEmptyArrays: true,
+//       },
+//     },
+//     {
+//       $project: {
+//         _id: 0,
+//         quantity: "$ingredients.quantity",
+//         unit: "$ingredients.unit",
+//         ingredient_name: "$ingredient.name",
+//       },
+//     },
+//     {
+//       $limit: 10,
+//     },
+//   ];
+//   db.collection("recettes")
+//     .aggregate(query)
+//     .toArray((err, results) => {
+//       if (err) {
+//         throw err;
+//       }
+//       res.json(results[0]);
+//     });
+// });
 
 // Port d'écoute de l'API
 const port = 3000; // Remplacez par le port de votre choix
