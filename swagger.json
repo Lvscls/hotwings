@@ -162,6 +162,97 @@
           }
         }
       }
+    },
+    "/mongo_recipes": {
+      "get": {
+        "description": "Récupère toutes les recettes",
+        "responses": {
+          "200": {
+            "description": "Liste des recettes",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Recipe"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mongo_recipes/title/{name}": {
+      "get": {
+        "description": "Récupère une recette par son nom",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Nom de la recette",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recette trouvée",
+            "schema": {
+              "$ref": "#/definitions/Recipe"
+            }
+          },
+          "404": {
+            "description": "Recette non trouvée"
+          }
+        }
+      }
+    },
+    "/mongo_recipes/{id}": {
+      "get": {
+        "description": "Récupère une recette par son identifiant",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Identifiant de la recette",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recette trouvée",
+            "schema": {
+              "$ref": "#/definitions/Recipe"
+            }
+          },
+          "404": {
+            "description": "Recette non trouvée"
+          }
+        }
+      }
+    },
+    "/mongo_recipes/ingredient/{ingredient}": {
+      "get": {
+        "description": "Récupère les recettes pour un ingrédient donné",
+        "parameters": [
+          {
+            "name": "ingredient",
+            "in": "path",
+            "description": "Nom de l'ingrédient",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des recettes pour cet ingrédient",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Recipe"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
