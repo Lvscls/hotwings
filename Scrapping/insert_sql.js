@@ -1,6 +1,6 @@
 const mysql = require("mysql2/promise");
-const recipes = require("../recipes.json");
-const ingredientsList = require("../ingredients.json");
+const recipes = require("./recipes.json")
+const ingredientsList = require("./ingredients.json");
 require('dotenv').config()
 
 async function main() {
